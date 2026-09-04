@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>今天做了啥</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#1f2430;
+      --muted:#8a90a0;
+      --line:#e7e9f0;
+      --accent:#5b67f1;
+      --accent-soft:#eef0ff;
+      --green:#2f9e67;
+      --green-soft:#eaf7f0;
+      --danger:#d9534f;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .wrap{
+      max-width:780px;
+      margin:0 auto;
+      padding:32px 18px 60px;
+    }
+    .header{
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:flex-end;
+      margin-bottom:22px;
+    }
+    h1{margin:0;font-size:30px;letter-spacing:-.5px}
+    .date{color:var(--muted);font-size:14px;margin-top:5px}
+
+    .composer{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      box-shadow:0 8px 30px rgba(30,40,80,.05);
+    }
+
+    .active-box{
+      display:none;
+      background:var(--green-soft);
+      border:1px solid #cfeadb;
+      border-radius:14px;
+      padding:15px;
+      margin-bottom:14px;
+    }
+    .active-box.show{display:block}
+    .active-label{
+      color:var(--green);
+      font-size:13px;
+      font-weight:750;
+      margin-bottom:6px;
+    }
+    .active-task{
+      font-size:18px;
+      font-weight:700;
+      line-height:1.45;
+      overflow-wrap:anywhere;
+    }
+    .active-meta{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:6px;
+    }
+
+    textarea{
+      width:100%;
+      min-height:92px;
+      resize:vertical;
+      border:0;
+      outline:none;
+      font:inherit;
+      font-size:17px;
+      line-height:1.55;
+      color:var(--text);
+      background:transparent;
+    }
+    textarea::placeholder{color:#b2b6c2}
+    textarea:disabled{
+      color:#a3a7b2;
+      cursor:not-allowed;
+    }
+
+    .composer-bottom{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+    .hint{font-size:13px;color:var(--muted)}
+    button{
+      border:0;
+      cursor:pointer;
+      font:inherit;
+      border-radius:11px;
+      padding:10px 15px;
+      min-height:42px;
+    }
+    .primary{
+      background:var(--accent);
+      color:white;
+      font-weight:700;
+      min-width:138px;
+    }
+    .primary.finish{
+      background:var(--green);
+    }
+    .primary:hover{filter:brightness(.96)}
+    .toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin:24px 2px 10px;
+      gap:12px;
+    }
+    .toolbar-title{font-weight:700}
+    .ghost{
+      color:var(--muted);
+      background:transparent;
+      padding:8px 10px;
+    }
+    .ghost:hover{background:#eceef4}
+
+    .list{display:flex;flex-direction:column;gap:10px}
+    .item{
+      display:grid;
+      grid-template-columns:116px 1fr auto;
+      gap:14px;
+      align-items:start;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+    }
+    .time-range{
+      font-variant-numeric:tabular-nums;
+      font-weight:750;
+      color:var(--accent);
+      line-height:1.5;
+      font-size:14px;
+    }
+    .duration{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:3px;
+      font-weight:500;
+    }
+    .content{
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+      line-height:1.55;
+      min-width:0;
+    }
+    .actions{display:flex;gap:4px}
+    .icon-btn{
+      background:transparent;
+      color:var(--muted);
+      padding:6px 8px;
+      min-height:auto;
+      font-size:13px;
+    }
+    .icon-btn:hover{background:#f2f3f7}
+    .delete:hover{color:var(--danger)}
+    .empty{
+      text-align:center;
+      padding:46px 10px;
+      color:var(--muted);
+    }
+    .count{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:400;
+      margin-left:6px;
+    }
+
+
+    .history-panel{
+      margin-top:28px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px;
+    }
+    .history-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .history-title{
+      font-weight:750;
+      font-size:17px;
+    }
+    .history-controls{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .history-controls select{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      border-radius:10px;
+      padding:9px 12px;
+      font:inherit;
+      min-height:42px;
+    }
+    .history-summary{
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:10px;
+    }
+    .history-empty{
+      color:var(--muted);
+      text-align:center;
+      padding:28px 8px;
+    }
+
+
+    .history-days{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .day-card{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:var(--card);
+      overflow:hidden;
+    }
+    .day-toggle{
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      background:transparent;
+      color:var(--text);
+      padding:14px 16px;
+      border-radius:0;
+      text-align:left;
+      min-height:52px;
+    }
+    .day-toggle:hover{
+      background:#f7f8fb;
+    }
+    .day-main{
+      min-width:0;
+    }
+    .day-date{
+      font-weight:750;
+      line-height:1.35;
+    }
+    .day-summary{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:3px;
+    }
+    .day-arrow{
+      color:var(--muted);
+      font-size:14px;
+      transition:transform .18s ease;
+      flex:0 0 auto;
+    }
+    .day-card.open .day-arrow{
+      transform:rotate(90deg);
+    }
+    .day-details{
+      display:none;
+      border-top:1px solid var(--line);
+      padding:10px;
+    }
+    .day-card.open .day-details{
+      display:block;
+    }
+
+
+    .edit-overlay{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(20,24,34,.38);
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:999;
+    }
+    .edit-overlay.show{display:flex}
+    .edit-modal{
+      width:min(520px,100%);
+      background:var(--card);
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 20px 60px rgba(0,0,0,.18);
+    }
+    .edit-modal h2{
+      margin:0 0 16px;
+      font-size:20px;
+    }
+    .field{
+      margin-bottom:14px;
+    }
+    .field label{
+      display:block;
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    .field input,
+    .field textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      font:inherit;
+      color:var(--text);
+      background:#fff;
+    }
+    .field textarea{
+      min-height:80px;
+      resize:vertical;
+    }
+    .edit-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:8px;
+    }
+    .secondary-btn{
+      background:#f0f1f5;
+      color:var(--text);
+    }
+    .save-btn{
+      background:var(--accent);
+      color:#fff;
+      font-weight:700;
+    }
+    .edit-error{
+      min-height:20px;
+      color:var(--danger);
+      font-size:13px;
+      margin-top:-4px;
+      margin-bottom:6px;
+    }
+
+
+    .backup-panel{
+      margin-top:18px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .backup-btn{
+      background:#f0f1f5;
+      color:var(--text);
+      border:1px solid var(--line);
+      font-weight:650;
+    }
+    .backup-btn:hover{background:#e9ebf1}
+    .backup-note{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    @media(max-width:560px){
+      .wrap{padding:22px 14px 48px}
+      h1{font-size:26px}
+      .header{align-items:flex-start;flex-direction:column;gap:5px}
+      .item{grid-template-columns:92px 1fr}
+      .actions{grid-column:2;justify-self:end;margin-top:-2px}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="header">
+      <div>
+        <h1>今天做了啥</h1>
+        <div class="date" id="todayLabel"></div>
+      </div>
+    </div>
+
+    <section class="composer">
+      <div class="active-box" id="activeBox">
+        <div class="active-label">● 正在进行</div>
+        <div class="active-task" id="activeTask"></div>
+        <div class="active-meta" id="activeMeta"></div>
+      </div>
+
+      <textarea id="entryInput" placeholder="准备开始做什么？比如：修改面试稿"></textarea>
+
+      <div class="composer-bottom">
+        <div class="hint" id="hint">输入内容后，点一下开始；做完后再点一下结束。</div>
+        <button class="primary" id="actionBtn">▶ 开始</button>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="toolbar-title">今日记录 <span class="count" id="count"></span></div>
+      <button class="ghost" id="clearBtn">清空今天</button>
+    </div>
+
+    <section class="list" id="list"></section>
+
+    <section class="history-panel">
+      <div class="history-head">
+        <div class="history-title">过去的记录</div>
+      </div>
+      <div class="history-days" id="historyDays"></div>
+    </section>
+
+
+    <div class="backup-panel">
+      <button class="backup-btn" id="exportBtn" type="button">导出备份</button>
+      <button class="backup-btn" id="importBtn" type="button">导入备份</button>
+      <input id="importFile" type="file" accept=".json,application/json" hidden>
+      <div class="backup-note">包含全部历史记录和当前正在进行的任务。</div>
+    </div>
+
+    <div class="edit-overlay" id="editOverlay" aria-hidden="true">
+      <div class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+        <h2 id="editTitle">编辑记录</h2>
+
+        <div class="field">
+          <label for="editText">内容</label>
+          <textarea id="editText"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="editStart">开始时间</label>
+          <input id="editStart" type="time">
+        </div>
+
+        <div class="field">
+          <label for="editEnd">结束时间</label>
+          <input id="editEnd" type="time">
+        </div>
+
+        <div class="edit-error" id="editError"></div>
+
+        <div class="edit-actions">
+          <button class="secondary-btn" id="editCancel" type="button">取消</button>
+          <button class="save-btn" id="editSave" type="button">保存</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const STORAGE_KEY = "what-i-did-today-ranges-v1";
+    const ACTIVE_KEY = "what-i-did-today-active-v1";
+
+    const input = document.getElementById("entryInput");
+    const actionBtn = document.getElementById("actionBtn");
+    const list = document.getElementById("list");
+    const count = document.getElementById("count");
+    const todayLabel = document.getElementById("todayLabel");
+    const clearBtn = document.getElementById("clearBtn");
+    const activeBox = document.getElementById("activeBox");
+    const activeTask = document.getElementById("activeTask");
+    const activeMeta = document.getElementById("activeMeta");
+    const hint = document.getElementById("hint");
+    const historyDays = document.getElementById("historyDays");
+    const editOverlay = document.getElementById("editOverlay");
+    const editText = document.getElementById("editText");
+    const editStart = document.getElementById("editStart");
+    const editEnd = document.getElementById("editEnd");
+    const editError = document.getElementById("editError");
+    const editCancel = document.getElementById("editCancel");
+    const editSave = document.getElementById("editSave");
+    const exportBtn = document.getElementById("exportBtn");
+    const importBtn = document.getElementById("importBtn");
+    const importFile = document.getElementById("importFile");
+
+    let editingId = null;
+
+
+    function pad(n){ return String(n).padStart(2,"0"); }
+
+    function dateKey(d = new Date()){
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+
+    function displayDate(d = new Date()){
+      const weekdays = ["周日","周一","周二","周三","周四","周五","周六"];
+      return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 · ${weekdays[d.getDay()]}`;
+    }
+
+    function displayDateKey(key){
+      const [y,m,d] = key.split("-").map(Number);
+      const dt = new Date(y, m - 1, d);
+      const weekdays = ["周日","周一","周二","周三","周四","周五","周六"];
+      return `${y}年${m}月${d}日 · ${weekdays[dt.getDay()]}`;
+    }
+
+    function totalDurationText(entries){
+      const total = entries.reduce((sum, x) => sum + Math.max(0, x.end - x.start), 0);
+      const mins = Math.round(total / 60000);
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      if(h && m) return `${h}小时${m}分钟`;
+      if(h) return `${h}小时`;
+      return `${m}分钟`;
+    }
+
+    function displayTime(ts){
+      const d = new Date(ts);
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function toTimeInputValue(ts){
+      const d = new Date(ts);
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function applyTimeToDate(dateString, timeValue){
+      if(!dateString || !timeValue) return null;
+
+      const [year, month, day] = dateString.split("-").map(Number);
+      const [hour, minute] = timeValue.split(":").map(Number);
+
+      if(
+        !Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day) ||
+        !Number.isFinite(hour) || !Number.isFinite(minute)
+      ){
+        return null;
+      }
+
+      const d = new Date(year, month - 1, day, hour, minute, 0, 0);
+      const ts = d.getTime();
+      return Number.isFinite(ts) ? ts : null;
+    }
+
+
+    function openEditModal(entry){
+      editingId = entry.id;
+      editText.value = entry.text;
+      editStart.value = toTimeInputValue(entry.start);
+      editEnd.value = toTimeInputValue(entry.end);
+      editError.textContent = "";
+      editOverlay.classList.add("show");
+      editOverlay.setAttribute("aria-hidden","false");
+      setTimeout(() => editText.focus(), 0);
+    }
+
+    function closeEditModal(){
+      editingId = null;
+      editOverlay.classList.remove("show");
+      editOverlay.setAttribute("aria-hidden","true");
+      editError.textContent = "";
+    }
+
+    function saveEditedEntry(){
+      if(!editingId) return;
+
+      const content = editText.value.trim();
+
+      if(!content){
+        editError.textContent = "内容不能为空。";
+        return;
+      }
+
+      const data = loadEntries();
+      const index = data.findIndex(x => x.id === editingId);
+      if(index < 0){
+        editError.textContent = "没有找到这条记录。";
+        return;
+      }
+
+      const recordDate = data[index].date;
+      const start = applyTimeToDate(recordDate, editStart.value);
+      const end = applyTimeToDate(recordDate, editEnd.value);
+
+      if(start === null || end === null){
+        editError.textContent = "请填写正确的开始和结束时间。";
+        return;
+      }
+
+      if(end < start){
+        editError.textContent = "结束时间不能早于开始时间。";
+        return;
+      }
+
+      data[index] = {
+        ...data[index],
+        text: content,
+        start,
+        end
+      };
+
+      saveEntries(data);
+      closeEditModal();
+      render();
+    }
+
+    function durationText(start, end){
+      let mins = Math.max(0, Math.round((end - start) / 60000));
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      if(h && m) return `${h}小时${m}分钟`;
+      if(h) return `${h}小时`;
+      return `${m}分钟`;
+    }
+
+    function loadEntries(){
+      try{
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(data) ? data : [];
+      }catch{
+        return [];
+      }
+    }
+
+    function saveEntries(data){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadActive(){
+      try{
+        const data = JSON.parse(localStorage.getItem(ACTIVE_KEY) || "null");
+        return data && data.text && data.start ? data : null;
+      }catch{
+        return null;
+      }
+    }
+
+    function saveActive(data){
+      if(data) localStorage.setItem(ACTIVE_KEY, JSON.stringify(data));
+      else localStorage.removeItem(ACTIVE_KEY);
+    }
+
+    function escapeHtml(str){
+      return str.replace(/[&<>"']/g, ch => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[ch]));
+    }
+
+
+
+    function renderHistory(){
+      const all = loadEntries();
+      const today = dateKey();
+      const dates = [...new Set(all.map(x => x.date))]
+        .filter(d => d !== today)
+        .sort((a,b) => b.localeCompare(a));
+
+      if(!dates.length){
+        historyDays.innerHTML = `<div class="history-empty">完成一些记录后，过去的日期会出现在这里。</div>`;
+        return;
+      }
+
+      historyDays.innerHTML = dates.map(date => {
+        const entries = all
+          .filter(x => x.date === date)
+          .sort((a,b) => a.start - b.start);
+
+        const details = entries.map(item => `
+          <article class="item">
+            <div class="time-range">
+              ${displayTime(item.start)} → ${displayTime(item.end)}
+              <div class="duration">${durationText(item.start, item.end)}</div>
+            </div>
+            <div class="content">${escapeHtml(item.text)}</div>
+            <div class="actions">
+              <button class="icon-btn edit-history" data-id="${item.id}" type="button">编辑</button>
+              <button class="icon-btn delete delete-history" data-id="${item.id}" type="button">删除</button>
+            </div>
+          </article>
+        `).join("");
+
+        return `
+          <section class="day-card" data-date="${date}">
+            <button class="day-toggle" type="button" aria-expanded="false">
+              <div class="day-main">
+                <div class="day-date">${displayDateKey(date)}</div>
+                <div class="day-summary">${entries.length} 条记录 · 共 ${totalDurationText(entries)}</div>
+              </div>
+              <div class="day-arrow">▶</div>
+            </button>
+            <div class="day-details">
+              <div class="list">${details}</div>
+            </div>
+          </section>
+        `;
+      }).join("");
+    }
+
+
+    function exportBackup(){
+      const payload = {
+        app: "今天做了啥",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        entries: loadEntries(),
+        active: loadActive()
+      };
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: "application/json;charset=utf-8"
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const now = new Date();
+      a.href = url;
+      a.download = `今天做了啥_备份_${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function validateBackup(data){
+      if(!data || typeof data !== "object" || !Array.isArray(data.entries)) return false;
+
+      for(const item of data.entries){
+        if(
+          !item ||
+          typeof item !== "object" ||
+          typeof item.id !== "string" ||
+          typeof item.text !== "string" ||
+          typeof item.start !== "number" ||
+          typeof item.end !== "number" ||
+          typeof item.date !== "string"
+        ){
+          return false;
+        }
+      }
+
+      if(data.active != null){
+        if(
+          typeof data.active !== "object" ||
+          typeof data.active.text !== "string" ||
+          typeof data.active.start !== "number" ||
+          typeof data.active.date !== "string"
+        ){
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    function importBackupFile(file){
+      if(!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        try{
+          const data = JSON.parse(reader.result);
+
+          if(!validateBackup(data)){
+            alert("这个文件不是有效的备份文件。");
+            importFile.value = "";
+            return;
+          }
+
+          const currentEntries = loadEntries();
+          const currentActive = loadActive();
+
+          let message = "导入后会覆盖当前所有记录。";
+          if(currentEntries.length || currentActive){
+            message += `\n当前有 ${currentEntries.length} 条已完成记录${currentActive ? "，以及 1 个正在进行的任务" : ""}。`;
+          }
+          message += "\n\n确定继续吗？";
+
+          if(!confirm(message)){
+            importFile.value = "";
+            return;
+          }
+
+          saveEntries(data.entries);
+          saveActive(data.active || null);
+          importFile.value = "";
+          render();
+
+          alert(`导入成功，共恢复 ${data.entries.length} 条记录${data.active ? "，以及 1 个正在进行的任务" : ""}。`);
+        }catch{
+          alert("读取失败，请确认你选择的是之前导出的 JSON 备份文件。");
+          importFile.value = "";
+        }
+      };
+
+      reader.onerror = () => {
+        alert("文件读取失败。");
+        importFile.value = "";
+      };
+
+      reader.readAsText(file, "utf-8");
+    }
+
+    function render(){
+      const today = dateKey();
+      const entries = loadEntries()
+        .filter(x => x.date === today)
+        .sort((a,b) => a.start - b.start);
+
+      const active = loadActive();
+
+      todayLabel.textContent = displayDate();
+      count.textContent = `(${entries.length})`;
+
+      if(active){
+        activeBox.classList.add("show");
+        activeTask.textContent = active.text;
+        activeMeta.textContent = `${displayTime(active.start)} 开始 · 已进行 ${durationText(active.start, Date.now())}`;
+        input.value = "";
+        input.disabled = true;
+        input.placeholder = "完成当前任务后才能开始下一项";
+        actionBtn.textContent = "■ 结束";
+        actionBtn.classList.add("finish");
+        hint.textContent = "按 Enter 或点击按钮结束，自动记录结束时间。";
+      }else{
+        activeBox.classList.remove("show");
+        input.disabled = false;
+        input.placeholder = "准备开始做什么？比如：修改面试稿";
+        actionBtn.textContent = "▶ 开始";
+        actionBtn.classList.remove("finish");
+        hint.textContent = "输入内容后按 Enter 开始；结束时再按一次 Enter。Shift + Enter 可换行。";
+      }
+
+      if(!entries.length){
+        list.innerHTML = `<div class="empty">今天还没有完成的记录。<br>先开始一件事吧。</div>`;
+        renderHistory();
+        return;
+      }
+
+      list.innerHTML = entries.map(item => `
+        <article class="item">
+          <div class="time-range">
+            ${displayTime(item.start)} → ${displayTime(item.end)}
+            <div class="duration">${durationText(item.start, item.end)}</div>
+          </div>
+          <div class="content">${escapeHtml(item.text)}</div>
+          <div class="actions">
+            <button class="icon-btn edit" data-id="${item.id}" type="button">编辑</button>
+            <button class="icon-btn delete" data-id="${item.id}" type="button">删除</button>
+          </div>
+        </article>
+      `).join("");
+
+
+      renderHistory();
+    }
+
+    function startTask(){
+      const text = input.value.trim();
+      if(!text){
+        input.focus();
+        return;
+      }
+
+      const now = new Date();
+      saveActive({
+        text,
+        start: now.getTime(),
+        date: dateKey(now)
+      });
+
+      render();
+    }
+
+    function finishTask(){
+      const active = loadActive();
+      if(!active) return;
+
+      const end = Date.now();
+      const data = loadEntries();
+
+      data.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+        text: active.text,
+        start: active.start,
+        end,
+        date: active.date
+      });
+
+      saveEntries(data);
+      saveActive(null);
+      render();
+      input.focus();
+    }
+
+    actionBtn.addEventListener("click", () => {
+      if(loadActive()) finishTask();
+      else startTask();
+    });
+
+    document.addEventListener("keydown", e => {
+      if(e.key !== "Enter" || e.shiftKey) return;
+
+      // 输入框里 Shift + Enter 保留换行；普通 Enter 完全等同于点击当前按钮
+      if(document.activeElement === input || loadActive()){
+        e.preventDefault();
+        actionBtn.click();
+      }
+    });
+
+    list.addEventListener("click", e => {
+      const btn = e.target.closest("button[data-id]");
+      if(!btn) return;
+
+      const id = btn.dataset.id;
+      const data = loadEntries();
+      const index = data.findIndex(x => x.id === id);
+      if(index < 0) return;
+
+      if(btn.classList.contains("delete")){
+        data.splice(index,1);
+        saveEntries(data);
+        render();
+      }
+
+      if(btn.classList.contains("edit")){
+        openEditModal(data[index]);
+      }
+    });
+
+
+
+    historyDays.addEventListener("click", e => {
+      const toggle = e.target.closest(".day-toggle");
+      if(toggle){
+        const card = toggle.closest(".day-card");
+        const open = card.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", String(open));
+        return;
+      }
+
+      const btn = e.target.closest("button[data-id]");
+      if(!btn) return;
+
+      const id = btn.dataset.id;
+      const data = loadEntries();
+      const index = data.findIndex(x => x.id === id);
+      if(index < 0) return;
+
+      if(btn.classList.contains("delete-history")){
+        data.splice(index, 1);
+        saveEntries(data);
+        renderHistory();
+      }
+
+      if(btn.classList.contains("edit-history")){
+        openEditModal(data[index]);
+      }
+    });
+
+
+    editCancel.addEventListener("click", closeEditModal);
+    editSave.addEventListener("click", saveEditedEntry);
+
+    editOverlay.addEventListener("click", e => {
+      if(e.target === editOverlay) closeEditModal();
+    });
+
+    document.addEventListener("keydown", e => {
+      if(editOverlay.classList.contains("show") && e.key === "Escape"){
+        e.preventDefault();
+        closeEditModal();
+      }
+    });
+
+    clearBtn.addEventListener("click", () => {
+      const today = dateKey();
+      const data = loadEntries();
+      const todayCount = data.filter(x => x.date === today).length;
+      if(!todayCount) return;
+
+      if(!confirm(`确定删除今天的 ${todayCount} 条已完成记录吗？`)) return;
+
+      saveEntries(data.filter(x => x.date !== today));
+      render();
+    });
+
+
+    exportBtn.addEventListener("click", exportBackup);
+
+    importBtn.addEventListener("click", () => {
+      importFile.click();
+    });
+
+    importFile.addEventListener("change", () => {
+      importBackupFile(importFile.files && importFile.files[0]);
+    });
+
+    render();
+    setInterval(() => {
+      if(loadActive()) render();
+    }, 30000);
+
+    if(!loadActive()) input.focus();
+  </script>
+</body>
+</html>
